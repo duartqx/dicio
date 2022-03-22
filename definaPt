@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+
+import requests
+from unicodedata import normalize, combining
+from re import search
+from sys import argv
+
+class Description:
+    
+    def __init__(self,word):
+        self.word = word
+        self.norm_word = self.normalize_word()
+        self.description = self.get_description()
+    def __repr__(self):
+        if self.description == 'Result not found':
+            return 'Result not found'
+        return f"{self.word.capitalize()}\n\t\"{self.description}"
+    def normalize_word(self):
+        # normalize_word retorna a palavra sem acentos e cedilha 
+        # para ser usada na url do dicio.com.br
+        return ''.join([c for c in normalize('NFKD',self.word)
+            if not combining(c)])
+    def get_result(self):
+        URL_BASE = 'https://www.dicio.com.br/'
+        content = requests.get(URL_BASE + self.norm_word)
+        result = search('og:description.*',content.text)
+        return result
+    def get_description(self):
+        result = self.get_result()
+        if result.group() == 'og:description" content="Ops, ' + \
+            'a palavra que procura não foi encontrada no Dicio.">':
+            return 'Result not found'
+        else:
+            try:
+                description = result.group().split('content=')[1].split(
+                f"Significado de {self.word.capitalize()} no Dicio, " + \
+                f"Dicionário Online de Português. O que é {self.word}: ")[1][:-1]
+                return description
+            except:
+                return 'Result not found'
+
+
+if __name__ == '__main__':
+
+    word = argv[1]
+    print(Description(word))
