@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-import requests
+from requests import get
+from requests.models import Response
 from unicodedata import normalize, combining
-from re import search
+from re import search, sub
 from sys import argv
 
 class Description:
@@ -11,33 +12,42 @@ class Description:
         self.word = word
         self.norm_word = self.normalize_word()
         self.description = self.get_description()
+
     def __repr__(self):
         if self.description == 'Result not found':
             return 'Result not found'
-        return f"{self.word.capitalize()}\n\t\"{self.description}"
-    def normalize_word(self):
-        # normalize_word retorna a palavra sem acentos e cedilha 
-        # para ser usada na url do dicio.com.br
+        return f"{self.word.capitalize()}\n    {self.description}"
+
+    def normalize_word(self) -> str:
+        # normalize_word returns the word without accents and cedilha
+        # to be concatenated with the URL_BASE and used to get a response
         return ''.join([c for c in normalize('NFKD',self.word)
             if not combining(c)])
-    def get_result(self):
+
+    def get_result(self) -> Response:
         URL_BASE = 'https://www.dicio.com.br/'
-        content = requests.get(URL_BASE + self.norm_word)
-        result = search('og:description.*',content.text)
+        content = get(URL_BASE + self.norm_word).text
+        result = search('<p itemprop="description" class=*(.*)</p>',content)
         return result
-    def get_description(self):
+
+    def get_description(self) -> str:
         result = self.get_result()
-        if result.group() == 'og:description" content="Ops, ' + \
-            'a palavra que procura não foi encontrada no Dicio.">':
+        if result == None or 'Ainda não temos o significado' in result.group():
+            # if the word is not on dicio.com.br, result can be None, if it's
+            # gibberish, or it can be a warning that the word is not on the 
+            # site if it's a word with similar results on the site
             return 'Result not found'
         else:
-            try:
-                description = result.group().split('content=')[1].split(
-                f"Significado de {self.word.capitalize()} no Dicio, " + \
-                f"Dicionário Online de Português. O que é {self.word}: ")[1][:-1]
-                return description
-            except:
-                return 'Result not found'
+            # sub here removes all html tags like <span> </span> <p> that
+            # it can find. That can lead to some words being united with a dot
+            # were a tag was before, so the split('.') removes all dots and 
+            # the string is joined again with '. '.join()
+            description = '. '.join(sub('<.*?>','',result.group()).split('.'))
+            # This split is to separate the description like it is presented 
+            # on dicio.com.br website, so it separates it and adds newline 
+            # between then
+            return ';\n    '.join(line.capitalize() 
+                    for line in description.split('; '))
 
 
 if __name__ == '__main__':
