@@ -1,7 +1,7 @@
 # dicio
 Simple wrapper for GNU Aspell for word checking in the terminal and definition grabbing from online dictionaries
 
-![scrot](https://raw.githubusercontent.com/duartqx/images/main/dicio-defina.png "scrot")
+![scrot](https://github.com/duartqx/images/blob/main/dicio-defina.png?raw=true)
 
 NAME
    dicio - A simple script that checks spelling
