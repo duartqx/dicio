@@ -15,8 +15,8 @@ class Description:
     def __repr__(self):
         if self.description == 'Result not found':
             return 'Result not found'
-        # This \033[1;32m<word>\033[00m ANSI escape sequence makes the word 
-        # be printed in the terminal in a green color instead of white
+        # This \033[1;32m<word>\033[00m ANSI escape sequence causes the word 
+        # to be printed in the terminal in a green color instead of white
         return f"\n\033[1;32m{self.word.capitalize()}\033[00m\n\n    " + \
                f"{self.description}\n"
 
@@ -30,7 +30,7 @@ class Description:
         URL_BASE = 'https://www.dicio.com.br/'
         content = PoolManager().request('GET',URL_BASE + self.norm_word)
         result = search('<p itemprop="description" class=*(.*)</p>',
-                content.data.decode())
+                        content.data.decode())
         return result
 
     def get_description(self) -> str:
@@ -41,16 +41,16 @@ class Description:
             # site if it's a word with similar results on the site
             return 'Result not found'
         else:
-            # sub here removes all html tags like <span> </span> <p> that
-            # it can find. That can lead to some words being united with a dot
-            # were a tag was before, so the split('.') removes all dots and 
-            # the string is joined again with '. '.join()
-            description = '. '.join(sub('<.*?>','',result.group()).split('.'))
-            # This split is to separate the description like it is presented 
-            # on dicio.com.br website, so it separates it and adds newline 
-            # between then
-            return ';\n    '.join(line.capitalize() 
-                    for line in description.split('; '))
+            # to format the description first re.sub is used here to  removes 
+            # all html tags like <span> </span> <p> that it can find. 
+            # That can lead to some words being united with a dot were a tag 
+            # was before, so the split('.') removes all dots and the string is
+            # joined again with '. '.join()
+            # Finally split is used again on ';' to separate the description 
+            # in multiple lines like it is presented on dicio.com.br's page
+            t = '. '.join(sub('<.*?>','',result.group()).split('.'))
+            description = ';\n    '.join(l.capitalize() for l in t.split('; '))
+            return description
 
 
 if __name__ == '__main__':
