@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-from requests import get
-from requests.models import Response
+from urllib3 import PoolManager
 from unicodedata import normalize, combining
 from re import search, sub
 from sys import argv
@@ -16,7 +15,10 @@ class Description:
     def __repr__(self):
         if self.description == 'Result not found':
             return 'Result not found'
-        return f"{self.word.capitalize()}\n    {self.description}"
+        # This \033[1;32m<word>\033[00m ANSI escape sequence makes the word 
+        # be printed in the terminal in a green color instead of white
+        return f"\n\033[1;32m{self.word.capitalize()}\033[00m\n\n    " + \
+               f"{self.description}\n"
 
     def normalize_word(self) -> str:
         # normalize_word returns the word without accents and cedilha
@@ -24,10 +26,11 @@ class Description:
         return ''.join([c for c in normalize('NFKD',self.word)
             if not combining(c)])
 
-    def get_result(self) -> Response:
+    def get_result(self):
         URL_BASE = 'https://www.dicio.com.br/'
-        content = get(URL_BASE + self.norm_word).text
-        result = search('<p itemprop="description" class=*(.*)</p>',content)
+        content = PoolManager().request('GET',URL_BASE + self.norm_word)
+        result = search('<p itemprop="description" class=*(.*)</p>',
+                content.data.decode())
         return result
 
     def get_description(self) -> str:
