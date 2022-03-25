@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-from urllib3 import PoolManager
+#from urllib3 import PoolManager
+from urllib.request import urlopen
 from unicodedata import normalize, combining
 from re import search, sub
 from sys import argv
@@ -28,9 +29,9 @@ class Description:
 
     def get_result(self):
         URL_BASE = 'https://www.dicio.com.br/'
-        content = PoolManager().request('GET',URL_BASE + self.norm_word)
+        content = urlopen(URL_BASE + self.norm_word)
         result = search('<p itemprop="description" class=*(.*)</p>',
-                        content.data.decode())
+                        content.read().decode('UTF-8'))
         return result
 
     def get_description(self) -> str:
