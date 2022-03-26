@@ -37,7 +37,7 @@ aspell_checker() {
     echo $word | aspell -l "$1" -a | sed -n 2p
 }
 
-[[ -z $word ]] && usageHelp && exit ;
+[[ -z $word ]] && usageHelp && exit 1 ;
 # If no word is passed as the second argument it echoes the help message
 
 case "$1" in
