@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 
-from urllib.request import urlopen
+from urllib.request import urlopen,HTTPError
 from unicodedata import normalize, combining
 from re import search, sub
 from sys import argv
 
+class NotFoundError(Exception): pass
+
 class Description:
     
-    def __init__(self,word):
+    def __init__(self, word):
         self.word = word
         self.norm_word = self.normalize_word()
         self.description = self.get_description()
@@ -30,7 +32,10 @@ class Description:
         ''' Returns the html content of dicio.com.br + self.norm_word or raises
         an exception if the word was not found '''
         URL_BASE = 'https://www.dicio.com.br/'
-        content = urlopen(URL_BASE + self.norm_word)
+        try:
+            content = urlopen(URL_BASE + self.norm_word)
+        except HTTPError:
+            raise NotFoundError
         result = search('<p itemprop="description" class=*(.*)</p>',
                         content.read().decode('UTF-8')).group()
 
@@ -39,14 +44,14 @@ class Description:
             # gibberish, or it can be a warning that the word is not on the 
             # site if it's a word with similar results on the site
             # Raising error to avoid returning two types (NoneType or Str)
-            raise Exception('NotFoundError')
+            raise NotFoundError
         
         return result
 
     def get_description(self) -> str:
         try:
             result = self.get_result()
-        except:
+        except NotFoundError:
             return 'Result not found'
         
         t = '. '.join(sub('<.*?>','',result).split('.'))
