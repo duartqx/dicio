@@ -15,10 +15,11 @@ class Description:
         self.description = self.get_description()
 
     def __repr__(self):
-        ''' Returns word capitalized + the description (that can be 'Result not
-        found' the weird  encoded characters around the word are an ANSI escape
+        ''' Returns word capitalized + the description (that can be 'Result 
+        not found') 
+        The weird encoded characters around the word are an ANSI escape
         sequence that causes the word to be printed in the color green in the
-        terminal instead of the default white '''
+        terminal, instead of the default white '''
         return f"\n\033[1;32m{self.word.capitalize()}\033[00m\n\n    " + \
                f"{self.description}\n"
 
@@ -30,7 +31,7 @@ class Description:
 
     def get_result(self) -> str:
         ''' Returns the html content of dicio.com.br + self.norm_word or raises
-        an exception if the word was not found '''
+        NotFoundError exception if the word was not found '''
         URL_BASE = 'https://www.dicio.com.br/'
         try:
             content = urlopen(URL_BASE + self.norm_word)
