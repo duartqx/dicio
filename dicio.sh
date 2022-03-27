@@ -47,7 +47,7 @@ case "$1" in
         aspell_checker en_US ;;
     defina)
         # External python script that get pt_BR word description
-        definaPt $word ;;
+        defina-pt $word ;;
     *)
         usageHelp
 esac
