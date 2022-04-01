@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
-from urllib.request import urlopen,HTTPError
+from urllib.request import urlopen
+from urllib.error import HTTPError
 from unicodedata import normalize, combining
 from re import search, sub
 from sys import argv
+from typing import Optional, Match
 
 class NotFoundError(Exception): pass
 
@@ -11,7 +13,7 @@ class Description:
     
     def __init__(self, word):
         self.word = word
-        self.norm_word = self.normalize_word()
+        self.nrml_word = self.normalize_word()
         self.description = self.get_description()
 
     def __repr__(self):
@@ -29,29 +31,33 @@ class Description:
         return ''.join([c for c in normalize('NFKD',self.word)
             if not combining(c)])
 
-    def get_result(self) -> str:
+    def _get_result(self) -> str:
         ''' Returns the html content of dicio.com.br + self.norm_word or raises
         NotFoundError exception if the word was not found '''
-        URL_BASE = 'https://www.dicio.com.br/'
+        URL_BASE: str = 'https://www.dicio.com.br/'
         try:
-            content = urlopen(URL_BASE + self.norm_word)
+            content: str = urlopen(URL_BASE + self.nrml_word).read().decode()
         except HTTPError:
             raise NotFoundError
-        result = search('<p itemprop="description" class=*(.*)</p>',
-                        content.read().decode('UTF-8')).group()
-
-        if not result or 'Ainda não temos o significado' in result:
-            # if the word is not on dicio.com.br, result can be None, if it's
-            # gibberish, or it can be a warning that the word is not on the 
-            # site if it's a word with similar results on the site
-            # Raising error to avoid returning two types (NoneType or Str)
-            raise NotFoundError
         
-        return result
+        result: Optional[Match[str]] = search('<p itemprop="description" ' + \
+                                       'class=*(.*)</p>', content)
+        
+        # This one was to make mypy happy about None not having group()
+        if result:
+            return result.group()
+        else:
+            raise NotFoundError
 
     def get_description(self) -> str:
         try:
-            result = self.get_result()
+            result: str = self._get_result()
+            if 'Ainda não temos o significado' in result:
+                # if the word is not on dicio.com.br, result can be None, if it's
+                # gibberish, or it can be a warning that the word is not on the 
+                # site if it's a word with similar results on the site
+                # Raising error to avoid returning two types (NoneType or Str)
+                raise NotFoundError
         except NotFoundError:
             return 'Result not found'
         
@@ -69,5 +75,5 @@ class Description:
 
 if __name__ == '__main__':
 
-    word = argv[1]
+    word: str = argv[1]
     print(Description(word))
