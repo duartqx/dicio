@@ -53,9 +53,9 @@ class Description:
         try:
             result: str = self._get_result()
             if 'Ainda não temos o significado' in result:
-                # if the word is not on dicio.com.br, result can be None, if it's
-                # gibberish, or it can be a warning that the word is not on the 
-                # site if it's a word with similar results on the site
+                # if the word is not on dicio.com.br, result can be None, if
+                # it's gibberish, or it can be a warning that the word is not
+                # on the site if it's a word with similar results on the site
                 # Raising error to avoid returning two types (NoneType or Str)
                 raise NotFoundError
         except NotFoundError:
@@ -75,5 +75,8 @@ class Description:
 
 if __name__ == '__main__':
 
+    # Talvez seja interessante eu alterar a fonte de descrição para a API do
+    # wikitionário em vez de usar regex em uma página do dicio.
+    # https://pt.wiktionary.org/w/rest.php/v1/page/<word>
     word: str = argv[1]
     print(Description(word))
