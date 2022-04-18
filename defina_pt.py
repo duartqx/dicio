@@ -11,12 +11,12 @@ class NotFoundError(Exception): pass
 
 class Description:
     
-    def __init__(self, word):
+    def __init__(self, word) -> None:
         self.word = word
         self.nrml_word = self.normalize_word()
         self.description = self.get_description()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         ''' Returns word capitalized + the description (that can be 'Result 
         not found') 
         The weird encoded characters around the word are an ANSI escape
