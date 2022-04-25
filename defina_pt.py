@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-from urllib.request import urlopen
-from urllib.error import HTTPError
-from unicodedata import normalize, combining
 from re import search, sub
 from sys import argv
 from typing import Optional, Match
+from unicodedata import normalize, combining
+from urllib.error import HTTPError
+from urllib.request import urlopen
 
 class NotFoundError(Exception): pass
 
@@ -22,14 +22,14 @@ class Description:
         The weird encoded characters around the word are an ANSI escape
         sequence that causes the word to be printed in the color green in the
         terminal, instead of the default white '''
-        return f"\n\033[1;32m{self.word.capitalize()}\033[00m\n\n    " + \
-               f"{self.description}\n"
+        return "\n\033[1;32m{}\033[00m\n{}\n".format(
+                self.word.capitalize(), self.description)
 
     def normalize_word(self) -> str:
         ''' normalize_word returns the word without accents, cedilha, etc
          to be concatenated with the URL_BASE and used to get a response '''
-        return ''.join([c for c in normalize('NFKD',self.word)
-            if not combining(c)])
+        return ''.join([c for c in normalize('NFKD',
+               self.word) if not combining(c)])
 
     def _get_result(self) -> str:
         ''' Returns the html content of dicio.com.br + self.norm_word or raises
@@ -69,7 +69,7 @@ class Description:
         # joined again with '. '.join()
         # Finally split is used again on ';' to separate the description 
         # in multiple lines like it is presented on dicio.com.br's page
-        description = ';\n    '.join(l.capitalize() for l in t.split('; '))
+        description = ';\n• '.join(l.capitalize() for l in t.split('; '))
         return description
 
 
