@@ -72,11 +72,14 @@ class Description:
         description = ';\n• '.join(l.capitalize() for l in t.split('; '))
         return description
 
-
-if __name__ == '__main__':
+def main():
 
     # Talvez seja interessante eu alterar a fonte de descrição para a API do
     # wikitionário em vez de usar regex em uma página do dicio.
     # https://pt.wiktionary.org/w/rest.php/v1/page/<word>
     word: str = argv[1]
     print(Description(word))
+
+if __name__ == '__main__':
+
+    main()
