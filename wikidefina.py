@@ -19,7 +19,7 @@ class DicioDefinition:
         self.descr: str = self._get_description()
 
     def __repr__(self) -> str:
-        return f'\n\033[32m{self.word.title()}\n\n\033[00m{self.descr}\n'
+        return f'\n\033[1;32m{self.word.title()}\n\n\033[00m{self.descr}\n'
 
     def _normalize_word(self) -> str:
         ''' returns the word without accents, cedilha, etc
@@ -82,6 +82,8 @@ class DicioDefinition:
         ]
 
         for pattern, repl in zip(sub_patterns, sub_repl):
+            # for loop on a zip of two lists to make sure they are looping on
+            # the right order
             s = sub(pattern, repl, s)
 
         return s
