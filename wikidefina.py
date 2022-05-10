@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from unicodedata import normalize as nrmlze, combining as comb
 from urllib.request import urlopen
 from urllib.error import HTTPError
@@ -17,56 +19,79 @@ class DicioDefinition:
         self.descr: str = self._get_description()
 
     def __repr__(self) -> str:
-        return f'\n\033[32m{self.word.title()}\033[00m\n{self.descr.strip()}\n'
+        return f'\n\033[32m{self.word.title()}\n\n\033[00m{self.descr}\n'
 
     def _normalize_word(self) -> str:
-        ''' normalize_word returns the word without accents, cedilha, etc
-         to be concatenated with the URL_BASE and used to get a response '''
+        ''' returns the word without accents, cedilha, etc
+         to be concatenated with the api_url and used to get a response '''
         return ''.join([c for c in nrmlze('NFKD', self.word) if not comb(c)])
 
     def _get_response(self) -> dict[str, str]:
         try:
             response = urlopen(self.api_url + self.nrmlized)
+            return json.load(response)
         except HTTPError:
-            if response.code == 400:
-                return {'source': 'Bad request'}
-            elif response.code == 401:
-                return {'source': 'Unauthorized request'}
-            elif response.code == 403:
-                return {'source': 'Forbidden'}
-            elif response.code == 404:
-                return {'source': 'Not found'}
-            elif response.code == 500:
-                return {'source': 'Something is wrong with the server'}
-        return json.load(response)
+            return {'source': 'Result not Found'}
 
     def _get_description(self) -> str:
 
-        to_sub = {'\{\{Wikipédia\}\}\n\n=\{\{\-pt\-\}\}\=\n': '', 
-                  '\[\[': '\033[1m', '\]\]|\}\}': '\033[00m', 
-                  '\{\{': '\033[3m', 
-                  r'(?:==+)(.*?)(?:==+)': r'\033[3m\1\033[00m\n', 
-                  '=': ' ',
-                  r'(?:#)(.*)': r'⚫\1', 
-                  '\-pt\-': '',
-                  '\|': ' | ',
-                 }
+        ''' Cleans up self.response['source'] with re.sub using to_sub
+        dictionary, removes some unneeded text from the start and end of the
+        string by spliting it on \n\n and returns the string '''
         descr: str = self.response['source']
-        if '\n\n' in descr:
-            descr = '\n\n'.join(descr.split('\n\n')[1:-2])
-        if 'Tradução' in descr:
-            descr = ''.join(descr.split('Tradução')[0])
 
-        for key, value in to_sub.items():
-            descr = sub(key, value, descr)
+        for method in [self._splitter, self._sub]:
+            descr = method(descr)
 
-        return descr
+        return descr.strip()
+
+    @staticmethod
+    def _splitter(s: str) -> str:
+        splitter: list[str] = [
+            'Tradução', 'Expressões', 
+            'etimologia', 'Sinônimos', 'pronúncia'
+        ]
+        for term in splitter:
+            # Removes irrelevant information
+            if term in s:
+                s = ''.join(s.split(term)[0])
+        return s
+
+    @staticmethod
+    def _sub(s: str) -> str:
+
+        sub_patterns: list[str] = [ 
+            '\|',
+            r'\*.*|Notas.*|\-pt\-|\<(.*?)\>|wiki(.*?)\:|',
+            r'({{Wiki|Imagem|ver também)(.*?)\n',
+            '=+|  |\{\{\}\}|\{\{$',
+            '\n\n+',
+            r'(?:#)(.*)',
+            '\[\[',
+            '\{\{',
+            '\]\]|\}\}',
+            r'(?:==+)(.*?)(?:==+)',
+            '\x1b\[1m\x1b\[3m\n\n',
+            '⚫\n\n',
+        ]
+
+        sub_repl: list[str] = [
+            ' | ', '', '', '', '\n\n', r'⚫\1', 
+            '\033[1m', '\033[3m', '\033[00m', 
+            r'\033[3m\1\033[00m\n', '', '\n',
+        ]
+
+        for pattern, repl in zip(sub_patterns, sub_repl):
+            s = sub(pattern, repl, s)
+
+        return s
+
 
 def main() -> None:
-    word: str = argv[1]
+    try: word: str = argv[1]
+    except IndexError: print('\nNo search word provided\n'); return
     print(DicioDefinition(word))
 
 if __name__ == '__main__':
 
     main()
-
