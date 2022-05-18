@@ -39,6 +39,7 @@ class DicioDefinition:
         for method in [self._splitter, self._sub]:
             descr = method(descr)
 
+        #print(repr(descr.strip()))
         return descr.strip()
 
     @staticmethod
@@ -46,7 +47,8 @@ class DicioDefinition:
         ''' Splits s multiple time to remove unneeded informations '''
         splitter: list[str] = [
             'Tradução', 'Expressões', 
-            'etimologia', 'Sinônimos', 'pronúncia'
+            'etimologia', 'Sinônimos', 
+            'pronúncia', 'Categoria',
         ]
         for term in splitter:
             # Removes irrelevant information
@@ -71,12 +73,13 @@ class DicioDefinition:
             r'(?:==+)(.*?)(?:==+)',
             '\x1b\[1m\x1b\[3m\n\n',
             '⚫\n+', '\'\'',
+            '\x1b\[1m(\n+)|\x1b\[3m(\n+)|(\n+)\x1b\[1m', 
         ]
 
         repls: list[str] = [
             ' | ', '', '', '', '\n\n', r'⚫\1', 
             '\033[1m', '\033[3m', '\033[00m', 
-            r'\033[3m\1\033[00m\n', '', '\n', '\"',
+            r'\033[3m\1\033[00m\n', '', '\n', '\"', '',
         ]
 
         for pattern, repl in zip(pttrns, repls):
