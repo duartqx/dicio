@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from json import load
-from re import sub
+from re import sub, split
 from sys import argv
 from urllib.error import HTTPError
 from urllib.parse import quote
@@ -44,23 +44,16 @@ class DicioDefinition:
 
     @staticmethod
     def _splitter(s: str) -> str:
-        ''' Splits s multiple time to remove unneeded informations '''
-        splitter: list[str] = [
-            'Tradução', 'Expressões', 
-            'etimologia', 'Sinônimos', 
-            'pronúncia', 'Categoria',
-        ]
-        for term in splitter:
-            # Removes irrelevant information
-            if term in s:
-                s = ''.join(s.split(term)[0])
-        return s
+        ''' Splits s with re.split on all lines starting with a # and returns
+        everything other than the last item on the split to remove unneeded
+        informations '''
+        return ''.join(split(r'((?:#))(.*)', s)[:-1])
 
     @staticmethod
     def _sub(s: str) -> str:
-        ''' zips pttrns and repls and calls sub with then to clean up s '''
-
-        pttrns: list[str] = [ 
+        ''' zips patterns and replacements and calls sub with then to clean up
+        s '''
+        patterns: list[str] = [ 
             '\|',
             r'\*.*|Notas.*|\-pt\-|\<(.*?)\>|wiki(.*?)\:|',
             r'({{Wiki|Imagem|ver também)(.*?)\n',
@@ -72,23 +65,21 @@ class DicioDefinition:
             '\]\]|\}\}|\'\'\'',
             r'(?:==+)(.*?)(?:==+)',
             '\x1b\[1m\x1b\[3m\n\n',
-            '⚫\n+', '\'\'',
+            '⚫($|\n+)', '\'\'',
             '\x1b\[1m(\n+)|\x1b\[3m(\n+)|(\n+)\x1b\[1m', 
         ]
-
-        repls: list[str] = [
+        replacements: list[str] = [
             ' | ', '', '', '', '\n\n', r'⚫\1', 
             '\033[1m', '\033[3m', '\033[00m', 
             r'\033[3m\1\033[00m\n', '', '\n', '\"', '',
         ]
 
-        for pattern, repl in zip(pttrns, repls):
+        for pattern, repl in zip(patterns, replacements):
             # for loop on a zip of two lists to make sure they are looping on
             # the right order
             s = sub(pattern, repl, s)
 
         return s
-
 
 def main() -> None:
     ''' Calls the DicioDefinition class if a word is passed as argv[1] '''
