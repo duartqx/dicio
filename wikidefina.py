@@ -5,9 +5,11 @@ from re import sub, split
 from sys import argv
 from urllib.error import HTTPError
 from urllib.parse import quote
-from urllib.request import urlopen, urljoin
+from urllib.request import urlopen
+
 
 class NotFoundError(HTTPError): pass
+
 
 class DicioDefinition:
 
@@ -81,11 +83,13 @@ class DicioDefinition:
 
         return s
 
+
 def main() -> None:
     ''' Calls the DicioDefinition class if a word is passed as argv[1] '''
     try: word: str = argv[1]
     except IndexError: print('\nNo search word provided\n'); return
     print(DicioDefinition(word))
+
 
 if __name__ == '__main__':
 

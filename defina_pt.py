@@ -7,7 +7,9 @@ from unicodedata import normalize, combining
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
+
 class NotFoundError(Exception): pass
+
 
 class Description:
     
@@ -72,6 +74,7 @@ class Description:
         description = ';\n• '.join(l.capitalize() for l in t.split('; '))
         return description
 
+
 def main():
 
     # Talvez seja interessante eu alterar a fonte de descrição para a API do
@@ -79,6 +82,7 @@ def main():
     # https://pt.wiktionary.org/w/rest.php/v1/page/<word>
     word: str = argv[1]
     print(Description(word))
+
 
 if __name__ == '__main__':
 
