@@ -18,11 +18,11 @@ ${BLD}USAGE:${NRML}
    dicio [OPTION] ${UND}<word>${NOUND}   
 
 ${BLD}OPTIONS:${NRML}                          
-   pt             checks spelling of pt_BR word
-   us|en          checks spelling of en_US word
-   defina      calls the definaPt python script
-                and prints the definition based
-               on dicio.com.br online dicionary
+   pt           checks spelling of pt_BR word
+   us|en        checks spelling of en_US word
+   d            prints portuguese word definition
+   t en         translates words from english to portuguese
+   t pt         translates words from portuguese to english
 _EOF
 }
 
@@ -45,9 +45,17 @@ case "$1" in
         aspell_checker pt_BR ;;
     us|en)
         aspell_checker en_US ;;
-    defina)
+    d)
         # External python script that get pt_BR word description
         defina-pt $word ;;
+    t)
+        shift
+        case "$1" in
+            en)
+                trans -s en -t pt "$2" -b ;;
+            pt)
+                trans -s pt -t en "$2" -b ;;
+        esac ;;
     *)
         usageHelp
 esac
