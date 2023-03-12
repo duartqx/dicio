@@ -2,13 +2,13 @@
 
 word="$2"
 
-UND=`tput smul`
-NOUND=`tput rmul`
-BLD=`tput bold`
-NRML=`tput sgr0`
+UND=$(tput smul)
+NOUND=$(tput rmul)
+BLD=$(tput bold)
+NRML=$(tput sgr0)
 
 usageHelp() {
-    cat << _EOF
+    cat <<_EOF
 ${BLD}NAME${NRML}
    dicio - A simple script that checks spelling
 with GNU Aspell or defines a word with the help
@@ -34,29 +34,35 @@ aspell_checker() {
     # -l option chooses the languages
     # -a option gets the word via stdin, incoming from echo
     # sed removes the first 2 lines
-    echo $word | aspell -l "$1" -a | sed -n 2p
+    echo "$word" | aspell -l "$1" -a | sed -n 2p
 }
 
-[[ -z $word ]] && usageHelp && exit 1 ;
+[[ -z $word ]] && usageHelp && exit 1
 # If no word is passed as the second argument it echoes the help message
 
 case "$1" in
+pt)
+    aspell_checker pt_BR
+    ;;
+us | en)
+    aspell_checker en_US
+    ;;
+d)
+    # External python script that get pt_BR word description
+    defina-pt "$word"
+    ;;
+t)
+    shift
+    case "$1" in
+    en)
+        trans -s en -t pt "$2" -b
+        ;;
     pt)
-        aspell_checker pt_BR ;;
-    us|en)
-        aspell_checker en_US ;;
-    d)
-        # External python script that get pt_BR word description
-        defina-pt $word ;;
-    t)
-        shift
-        case "$1" in
-            en)
-                trans -s en -t pt "$2" -b ;;
-            pt)
-                trans -s pt -t en "$2" -b ;;
-        esac ;;
-    *)
-        usageHelp
+        trans -s pt -t en "$2" -b
+        ;;
+    esac
+    ;;
+*)
+    usageHelp
+    ;;
 esac
-
