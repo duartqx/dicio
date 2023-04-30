@@ -31,7 +31,9 @@ class Description:
     def normalize_word(self) -> str:
         """normalize_word returns the word without accents, cedilha, etc
         to be concatenated with the URL_BASE and used to get a response"""
-        return "".join([c for c in normalize("NFKD", self.word) if not combining(c)])
+        return "".join(
+            [c for c in normalize("NFKD", self.word) if not combining(c)]
+        )
 
     def _get_result(self) -> str:
         """Returns the html content of dicio.com.br + self.norm_word or raises
